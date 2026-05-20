@@ -3,39 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Extrator Bicho PE v2</title>
+<title>Extrator Bicho PE v3 - 1 ao 5</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:Inter,Arial,sans-serif; }
   body { background:#0f172a; color:#f8fafc; padding:20px; display:flex; justify-content:center; }
- .container { width:100%; max-width:650px; background:rgba(255,255,255,0.08); backdrop-filter:blur(14px);
+.container { width:100%; max-width:650px; background:rgba(255,255,255,0.08); backdrop-filter:blur(14px);
     border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:24px; }
   h1 { font-size:24px; margin-bottom:8px; text-align:center; }
   p { color:#cbd5e1; font-size:14px; text-align:center; margin-bottom:20px; }
   label { font-size:13px; color:#cbd5e1; display:block; margin:12px 0 6px; }
   input[type="date"] { width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);
     background:rgba(255,255,255,0.08); color:white; }
- .row { display:flex; gap:12px; }
- .row > div { flex:1; }
+.row { display:flex; gap:12px; }
+.row > div { flex:1; }
   button { width:100%; padding:14px; border:none; border-radius:14px; font-weight:700; font-size:15px;
     cursor:pointer; margin-top:12px; transition:all 0.2s; }
   button:hover { transform:translateY(-2px); opacity:0.95; }
   button:disabled { opacity:0.6; cursor:not-allowed; }
- .btn-primary { background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:white; }
- .btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:white; }
- .btn-stop { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; }
- .log { background:rgba(0,0,0,0.3); border-radius:12px; padding:12px; margin-top:16px; font-size:13px;
+.btn-primary { background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:white; }
+.btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:white; }
+.btn-stop { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; }
+.log { background:rgba(0,0,0,0.3); border-radius:12px; padding:12px; margin-top:16px; font-size:13px;
     max-height:300px; overflow:auto; white-space:pre-wrap; font-family:monospace; }
- .stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
- .stat-box { background:rgba(255,255,255,0.06); padding:12px; border-radius:12px; text-align:center; }
- .stat-box b { font-size:20px; display:block; }
- .hidden { display:none; }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
+.stat-box { background:rgba(255,255,255,0.06); padding:12px; border-radius:12px; text-align:center; }
+.stat-box b { font-size:20px; display:block; }
+.hidden { display:none; }
   @media(max-width:600px){.row { flex-direction:column; }.stats { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>🎲 Extrator Bicho PE v2</h1>
-  <p>Puxa resultados de PE com fallback automático</p>
+  <h1>🎲 Extrator Bicho PE v3</h1>
+  <p>Só 1º ao 5º prêmio, sem duplicatas</p>
 
   <div class="row">
     <div>
@@ -113,14 +113,39 @@ async function fetchComFallback(url) {
   throw new Error('Todos os proxies falharam');
 }
 
-function extrairMilhar(html) {
-  const regex = /\b\d{4}\b/g;
-  const matches = html.match(regex) || [];
-  // Filtra pra pegar só os que parecem resultado: entre 0000 e 9999 e não é ano
-  return matches.filter(m => {
-    const n = parseInt(m);
-    return n >= 0 && n <= 9999 && m.length === 4;
+function extrairMilhar1a5(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const milhares = [];
+
+  // Pega todas as tabelas de resultado
+  const tabelas = doc.querySelectorAll('table');
+
+  tabelas.forEach(tabela => {
+    const linhas = tabela.querySelectorAll('tr');
+    let count = 0;
+
+    linhas.forEach(linha => {
+      if (count >= 5) return; // Para no 5º prêmio
+
+      const celulas = linha.querySelectorAll('td');
+      if (celulas.length >= 2) {
+        const texto = celulas[1].textContent.trim();
+        const match = texto.match(/\b\d{4}\b/);
+        if (match) {
+          const num = match[0];
+          const n = parseInt(num);
+          // Filtra anos e números inválidos
+          if (n >= 0 && n <= 9999 && n > 2020 && num.length === 4) {
+            milhares.push(num);
+            count++;
+          }
+        }
+      }
+    });
   });
+
+  return milhares;
 }
 
 async function iniciar() {
@@ -142,7 +167,7 @@ async function iniciar() {
   document.getElementById('btnStop').classList.remove('hidden');
   document.getElementById('btnDownload').classList.add('hidden');
 
-  log(`Iniciando ${datas.length} dias - PE`);
+  log(`Iniciando ${datas.length} dias - PE - Só 1º ao 5º prêmio`);
   log('================================\n');
 
   for (let i = 0; i < datas.length && rodando; i++) {
@@ -153,7 +178,7 @@ async function iniciar() {
       const url = `https://www.resultadofacil.com.br/resultado-do-jogo-do-bicho/pe/do-dia/${data}`;
       const html = await fetchComFallback(url);
 
-      const milhares = extrairMilhar(html);
+      const milhares = extrairMilhar1a5(html);
       const novos = milhares.filter(m =>!setResultados.has(m));
 
       novos.forEach(m => {
@@ -199,7 +224,7 @@ function baixarTXT() {
 
   const inicio = document.getElementById('dataInicio').value;
   const fim = document.getElementById('dataFim').value;
-  a.download = `bicho_pe_${inicio}_ate_${fim}_${resultados.length}.txt`;
+  a.download = `bicho_pe_1a5_${inicio}_ate_${fim}_${resultados.length}.txt`;
 
   a.href = url;
   a.click();
