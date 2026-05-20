@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Extrator Jogo do Bicho PE</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:Inter,Arial,sans-serif; }
+  body {
+    background:#0f172a;
+    color:#f8fafc;
+    padding:20px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    min-height:100vh;
+  }
+ .container {
+    width:100%;
+    max-width:600px;
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:24px;
+    padding:24px;
+    box-shadow:0 10px 35px rgba(0,0,0,0.25);
+  }
+  h1 { font-size:24px; margin-bottom:8px; text-align:center; }
+  p { color:#cbd5e1; font-size:14px; text-align:center; margin-bottom:20px; }
+
+  label { font-size:13px; color:#cbd5e1; display:block; margin:12px 0 6px; }
+  input[type="date"] {
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.12);
+    background:rgba(255,255,255,0.08);
+    color:white;
+  }
+
+ .row { display:flex; gap:12px; }
+ .row > div { flex:1; }
+
+  button {
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    margin-top:12px;
+    transition:all 0.2s;
+  }
+  button:hover { transform:translateY(-2px); opacity:0.95; }
+  button:disabled { opacity:0.6; cursor:not-allowed; }
+
+ .btn-primary { background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:white; }
+ .btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:white; }
+ .btn-stop { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; }
+
+ .log {
+    background:rgba(0,0,0,0.3);
+    border-radius:12px;
+    padding:12px;
+    margin-top:16px;
+    font-size:13px;
+    max-height:250px;
+    overflow:auto;
+    white-space:pre-wrap;
+    font-family:monospace;
+  }
+
+ .info {
+    background:rgba(59,130,246,0.15);
+    border:1px solid rgba(59,130,246,0.3);
+    padding:12px;
+    border-radius:12px;
+    font-size:13px;
+    margin-top:16px;
+  }
+
+  @media(max-width:600px){
+   .row { flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎲 Extrator Bicho PE</h1>
+  <p>Puxa todos os resultados de PE e gera um arquivo TXT</p>
+
+  <div class="row">
+    <div>
+      <label>Data Início</label>
+      <input type="date" id="dataInicio">
+    </div>
+    <div>
+      <label>Data Fim</label>
+      <input type="date" id="dataFim">
+    </div>
+  </div>
+
+  <button class="btn-primary" id="btnStart" onclick="iniciar()">🚀 Iniciar Extração</button>
+  <button class="btn-stop hidden" id="btnStop" onclick="parar()">⏹️ Parar</button>
+  <button class="btn-success hidden" id="btnDownload" onclick="baixarTXT()">📥 Baixar TXT</button>
+
+  <div class="info">
+    <strong>Como funciona:</strong> O site pega os resultados da página de PE, evita duplicatas e salva tudo em formato: 1234 5678 9012...
+    <br><br>
+    <strong>Obs:</strong> Usa um proxy público. Se der erro, aguarde 1 min e tente de novo.
+  </div>
+
+  <div class="log" id="log">Aguardando início...</div>
+</div>
+
+<script>
+const PROXY = 'https://api.allorigins.win/raw?url=';
+let rodando = false;
+let resultados = [];
+let setResultados = new Set();
+
+document.getElementById('dataInicio').valueAsDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+document.getElementById('dataFim').valueAsDate = new Date();
+
+function log(msg) {
+  document.getElementById('log').textContent += msg + '\n';
+  document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
+}
+
+function gerarDatas(inicio, fim) {
+  const arr = [];
+  let dt = new Date(inicio);
+  const dtFim = new Date(fim);
+  while (dt <= dtFim) {
+    arr.push(dt.toISOString().slice(0,10));
+    dt.setDate(dt.getDate() + 1);
+  }
+  return arr;
+}
+
+async function iniciar() {
+  const inicio = document.getElementById('dataInicio').value;
+  const fim = document.getElementById('dataFim').value;
+
+  if (!inicio ||!fim) return alert('Preenche as duas datas');
+  if (new Date(inicio) > new Date(fim)) return alert('Data início maior que fim');
+
+  const datas = gerarDatas(inicio, fim);
+  if (datas.length > 90 &&!confirm(`Vai puxar ${datas.length} dias. Pode demorar. Continuar?`)) return;
+
+  rodando = true;
+  resultados = [];
+  setResultados.clear();
+  document.getElementById('log').textContent = '';
+  document.getElementById('btnStart').classList.add('hidden');
+  document.getElementById('btnStop').classList.remove('hidden');
+  document.getElementById('btnDownload').classList.add('hidden');
+
+  log(`Iniciando extração de ${datas.length} dias...`);
+  log('Fonte: resultadofacil.com.br/resultado-do-jogo-do-bicho/pe\n');
+
+  for (let i = 0; i < datas.length && rodando; i++) {
+    const data = datas[i];
+    log(`[${i+1}/${datas.length}] ${data}... `);
+
+    try {
+      const url = `https://www.resultadofacil.com.br/resultado-do-jogo-do-bicho/pe/do-dia/${data}`;
+      const res = await fetch(PROXY + encodeURIComponent(url));
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const html = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      const milhares = [];
+      doc.querySelectorAll('table tbody tr td:nth-child(2)').forEach(td => {
+        const num = td.textContent.trim();
+        if (/^\d{4}$/.test(num) &&!setResultados.has(num)) {
+          milhares.push(num);
+          setResultados.add(num);
+        }
+      });
+
+      resultados.push(...milhares);
+      log(`+${milhares.length} resultados`);
+
+    } catch (err) {
+      log(`ERRO: ${err.message}`);
+    }
+
+    await new Promise(r => setTimeout(r, 1500)); // delay pra não tomar block
+  }
+
+  rodando = false;
+  document.getElementById('btnStop').classList.add('hidden');
+  document.getElementById('btnStart').classList.remove('hidden');
+
+  if (resultados.length > 0) {
+    document.getElementById('btnDownload').classList.remove('hidden');
+    log(`\n✅ Finalizado! Total: ${resultados.length} milhares`);
+  } else {
+    log('\n❌ Nenhum resultado encontrado');
+  }
+}
+
+function parar() {
+  rodando = false;
+  log('\n⏹️ Parado pelo usuário');
+}
+
+function baixarTXT() {
+  const conteudo = resultados.join('\n');
+  const blob = new Blob([conteudo], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+
+  const inicio = document.getElementById('dataInicio').value;
+  const fim = document.getElementById('dataFim').value;
+  a.download = `bicho_pe_${inicio}_ate_${fim}.txt`;
+
+  a.href = url;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
