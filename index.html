@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Extrator Bicho PE v3 - 1 ao 5</title>
+<title>Extrator Bicho BR v2.1</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:Inter,Arial,sans-serif; }
   body { background:#0f172a; color:#f8fafc; padding:20px; display:flex; justify-content:center; }
@@ -12,8 +12,9 @@
   h1 { font-size:24px; margin-bottom:8px; text-align:center; }
   p { color:#cbd5e1; font-size:14px; text-align:center; margin-bottom:20px; }
   label { font-size:13px; color:#cbd5e1; display:block; margin:12px 0 6px; }
-  input[type="date"] { width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);
+  input[type="date"], select { width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);
     background:rgba(255,255,255,0.08); color:white; }
+  select option { background:#1e293b; color:white; }
 .row { display:flex; gap:12px; }
 .row > div { flex:1; }
   button { width:100%; padding:14px; border:none; border-radius:14px; font-weight:700; font-size:15px;
@@ -34,8 +35,18 @@
 </head>
 <body>
 <div class="container">
-  <h1>🎲 Extrator Bicho PE v3</h1>
-  <p>Só 1º ao 5º prêmio, sem duplicatas</p>
+  <h1>🎲 Extrator Bicho BR v2.1</h1>
+  <p>Puxa resultados com fallback automático</p>
+
+  <label>Estado</label>
+  <select id="estado">
+    <option value="pe">Pernambuco - PE</option>
+    <option value="rj">Rio de Janeiro - RJ</option>
+    <option value="sp">São Paulo - SP</option>
+    <option value="mg">Minas Gerais - MG</option>
+    <option value="ba">Bahia - BA</option>
+    <option value="ce">Ceará - CE</option>
+  </select>
 
   <div class="row">
     <div>
@@ -94,8 +105,8 @@ function updateStats() {
 
 function gerarDatas(inicio, fim) {
   const arr = [];
-  let dt = new Date(inicio);
-  const dtFim = new Date(fim);
+  let dt = new Date(inicio + 'T00:00:00');
+  const dtFim = new Date(fim + 'T00:00:00');
   while (dt <= dtFim) {
     arr.push(dt.toISOString().slice(0,10));
     dt.setDate(dt.getDate() + 1);
@@ -106,49 +117,32 @@ function gerarDatas(inicio, fim) {
 async function fetchComFallback(url) {
   for (let proxy of PROXIES) {
     try {
-      const res = await fetch(proxy + encodeURIComponent(url), {timeout: 15000});
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(proxy + encodeURIComponent(url), {signal: controller.signal});
+      clearTimeout(timeout);
       if (res.ok) return await res.text();
     } catch(e) {}
   }
   throw new Error('Todos os proxies falharam');
 }
 
-function extrairMilhar1a5(html) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  const milhares = [];
-
-  // Pega todas as tabelas de resultado
-  const tabelas = doc.querySelectorAll('table');
-
-  tabelas.forEach(tabela => {
-    const linhas = tabela.querySelectorAll('tr');
-    let count = 0;
-
-    linhas.forEach(linha => {
-      if (count >= 5) return; // Para no 5º prêmio
-
-      const celulas = linha.querySelectorAll('td');
-      if (celulas.length >= 2) {
-        const texto = celulas[1].textContent.trim();
-        const match = texto.match(/\b\d{4}\b/);
-        if (match) {
-          const num = match[0];
-          const n = parseInt(num);
-          // Filtra anos e números inválidos
-          if (n >= 0 && n <= 9999 && n > 2020 && num.length === 4) {
-            milhares.push(num);
-            count++;
-          }
-        }
-      }
-    });
-  });
-
-  return milhares;
+function extrairMilhar(html) {
+  // Regex melhorado: pega 4 dígitos que não estão colados em letras/números
+  // Evita pegar anos 2024, 2025 dentro de datas
+  const regex = /(?:^|\D)(\d{4})(?:\D|$)/g;
+  const matches = [];
+  let match;
+  while ((match = regex.exec(html))!== null) {
+    const milhar = match[1];
+    const n = parseInt(milhar);
+    if (n >= 0 && n <= 9999) matches.push(milhar);
+  }
+  return [...new Set(matches)]; // remove duplicados na própria página
 }
 
 async function iniciar() {
+  const estado = document.getElementById('estado').value;
   const inicio = document.getElementById('dataInicio').value;
   const fim = document.getElementById('dataFim').value;
 
@@ -167,7 +161,7 @@ async function iniciar() {
   document.getElementById('btnStop').classList.remove('hidden');
   document.getElementById('btnDownload').classList.add('hidden');
 
-  log(`Iniciando ${datas.length} dias - PE - Só 1º ao 5º prêmio`);
+  log(`Iniciando ${datas.length} dias - ${estado.toUpperCase()}`);
   log('================================\n');
 
   for (let i = 0; i < datas.length && rodando; i++) {
@@ -175,10 +169,10 @@ async function iniciar() {
     log(`[${i+1}/${datas.length}] ${data}... `);
 
     try {
-      const url = `https://www.resultadofacil.com.br/resultado-do-jogo-do-bicho/pe/do-dia/${data}`;
+      const url = `https://www.resultadofacil.com.br/resultado-do-jogo-do-bicho/${estado}/do-dia/${data}`;
       const html = await fetchComFallback(url);
 
-      const milhares = extrairMilhar1a5(html);
+      const milhares = extrairMilhar(html);
       const novos = milhares.filter(m =>!setResultados.has(m));
 
       novos.forEach(m => {
@@ -204,7 +198,7 @@ async function iniciar() {
   if (resultados.length > 0) {
     document.getElementById('btnDownload').classList.remove('hidden');
     log(`\n✅ Finalizado!`);
-    log(`Total: ${resultados.length} milhares`);
+    log(`Total: ${resultados.length} milhares únicos`);
     log(`Dias com resultado: ${diasOk}/${datas.length}`);
   } else {
     log('\n❌ Nenhum resultado encontrado');
@@ -218,13 +212,14 @@ function parar() {
 
 function baixarTXT() {
   const conteudo = resultados.join('\n');
-  const blob = new Blob([conteudo], {type:'text/plain'});
+  const blob = new Blob([conteudo], {type:'text/plain;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
 
+  const estado = document.getElementById('estado').value;
   const inicio = document.getElementById('dataInicio').value;
   const fim = document.getElementById('dataFim').value;
-  a.download = `bicho_pe_1a5_${inicio}_ate_${fim}_${resultados.length}.txt`;
+  a.download = `bicho_${estado}_${inicio}_ate_${fim}_${resultados.length}.txt`;
 
   a.href = url;
   a.click();
