@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Extrator Bicho BR v2.1</title>
+<title>Extrator Bicho BR v2.2 - com Blacklist</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:Inter,Arial,sans-serif; }
   body { background:#0f172a; color:#f8fafc; padding:20px; display:flex; justify-content:center; }
@@ -35,8 +35,8 @@
 </head>
 <body>
 <div class="container">
-  <h1>🎲 Extrator Bicho BR v2.1</h1>
-  <p>Puxa resultados com fallback automático</p>
+  <h1>🎲 Extrator Bicho BR v2.2</h1>
+  <p>Com blacklist de números fantasmas</p>
 
   <label>Estado</label>
   <select id="estado">
@@ -78,6 +78,16 @@
 </div>
 
 <script>
+// ============================================================
+// 🔥 BLACKLIST - números fantasmas que sempre aparecem no site
+// ============================================================
+const BLACKLIST = [
+  '1000', '1024', '1100', '1200', '1500', '1800',
+  '2200', '2500', '2800', '4000', '5000', '5390',
+  '5500', '7000', '2025', '2026'
+];
+
+// Proxies para contornar CORS
 const PROXIES = [
   'https://api.allorigins.win/raw?url=',
   'https://corsproxy.io/?',
@@ -128,17 +138,23 @@ async function fetchComFallback(url) {
 }
 
 function extrairMilhar(html) {
-  // Regex melhorado: pega 4 dígitos que não estão colados em letras/números
-  // Evita pegar anos 2024, 2025 dentro de datas
+  // Remove scripts e estilos para não capturar números de código
+  const htmlLimpo = html.replace(/<script[\s\S]*?<\/script>/gi, ' ')
+                        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+                        .replace(/<[^>]+>/g, ' '); // remove tags, mantém texto
+
+  // Regex para achar 4 dígitos isolados
   const regex = /(?:^|\D)(\d{4})(?:\D|$)/g;
   const matches = [];
   let match;
-  while ((match = regex.exec(html))!== null) {
+  while ((match = regex.exec(htmlLimpo)) !== null) {
     const milhar = match[1];
+    // 🔥 PULA SE ESTIVER NA BLACKLIST
+    if (BLACKLIST.includes(milhar)) continue;
     const n = parseInt(milhar);
     if (n >= 0 && n <= 9999) matches.push(milhar);
   }
-  return [...new Set(matches)]; // remove duplicados na própria página
+  return [...new Set(matches)];
 }
 
 async function iniciar() {
@@ -146,11 +162,11 @@ async function iniciar() {
   const inicio = document.getElementById('dataInicio').value;
   const fim = document.getElementById('dataFim').value;
 
-  if (!inicio ||!fim) return alert('Preenche as duas datas');
+  if (!inicio || !fim) return alert('Preenche as duas datas');
   if (new Date(inicio) > new Date(fim)) return alert('Data início maior que fim');
 
   const datas = gerarDatas(inicio, fim);
-  if (datas.length > 90 &&!confirm(`Vai puxar ${datas.length} dias. Continuar?`)) return;
+  if (datas.length > 90 && !confirm(`Vai puxar ${datas.length} dias. Continuar?`)) return;
 
   rodando = true;
   resultados = [];
@@ -173,7 +189,7 @@ async function iniciar() {
       const html = await fetchComFallback(url);
 
       const milhares = extrairMilhar(html);
-      const novos = milhares.filter(m =>!setResultados.has(m));
+      const novos = milhares.filter(m => !setResultados.has(m));
 
       novos.forEach(m => {
         resultados.push(m);
