@@ -3,244 +3,931 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Extrator Bicho BR v2.2 - com Blacklist</title>
+<title>Estatística Jogo do Bicho v4.3 - Palpites Quentes & Frios</title>
+
 <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:Inter,Arial,sans-serif; }
-  body { background:#0f172a; color:#f8fafc; padding:20px; display:flex; justify-content:center; }
-.container { width:100%; max-width:650px; background:rgba(255,255,255,0.08); backdrop-filter:blur(14px);
-    border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:24px; }
-  h1 { font-size:24px; margin-bottom:8px; text-align:center; }
-  p { color:#cbd5e1; font-size:14px; text-align:center; margin-bottom:20px; }
-  label { font-size:13px; color:#cbd5e1; display:block; margin:12px 0 6px; }
-  input[type="date"], select { width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);
-    background:rgba(255,255,255,0.08); color:white; }
-  select option { background:#1e293b; color:white; }
-.row { display:flex; gap:12px; }
-.row > div { flex:1; }
-  button { width:100%; padding:14px; border:none; border-radius:14px; font-weight:700; font-size:15px;
-    cursor:pointer; margin-top:12px; transition:all 0.2s; }
-  button:hover { transform:translateY(-2px); opacity:0.95; }
-  button:disabled { opacity:0.6; cursor:not-allowed; }
-.btn-primary { background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:white; }
-.btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:white; }
-.btn-stop { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; }
-.log { background:rgba(0,0,0,0.3); border-radius:12px; padding:12px; margin-top:16px; font-size:13px;
-    max-height:300px; overflow:auto; white-space:pre-wrap; font-family:monospace; }
-.stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
-.stat-box { background:rgba(255,255,255,0.06); padding:12px; border-radius:12px; text-align:center; }
-.stat-box b { font-size:20px; display:block; }
-.hidden { display:none; }
-  @media(max-width:600px){.row { flex-direction:column; }.stats { grid-template-columns:1fr; } }
+:root {
+  --bg: #0f172a;
+  --card: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.12);
+  --text: #f8fafc;
+  --muted: #cbd5e1;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --orange: #f97316;
+  --purple: #8b5cf6;
+  --gray: #64748b;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Inter, -apple-system, sans-serif;
+  background: radial-gradient(circle at top left, #1e293b, #0f172a 60%);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 560px;
+  margin: auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.header p {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.badge {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  font-size: 12px;
+}
+
+.card {
+  background: var(--card);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+}
+
+input,
+textarea,
+button {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 15px;
+  transition: all .25s ease;
+}
+
+input,
+textarea {
+  background: rgba(255,255,255,0.08);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #cbd5e1;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.25);
+  transform: scale(1.01);
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+button {
+  font-weight: 700;
+  cursor: pointer;
+  color: white;
+  margin-top: 10px;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  opacity: .96;
+}
+
+button:active {
+  transform: scale(.98);
+}
+
+.btn-green {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.btn-red {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.btn-blue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.btn-gray {
+  background: linear-gradient(135deg, #64748b, #475569);
+}
+
+.btn-orange {
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+}
+
+.btn-purple {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.btn-pink {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.row button {
+  flex: 1;
+}
+
+.resumo {
+  background: linear-gradient(135deg, rgba(34,197,94,.18), rgba(59,130,246,.18));
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 18px;
+  border-radius: 20px;
+  line-height: 1.9;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.palpite-box {
+  background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(236,72,153,.1));
+  border-left: 4px solid var(--purple);
+  padding: 16px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.palpite-box.frios {
+  border-left: 4px solid #3b82f6;
+  background: linear-gradient(135deg, rgba(59,130,246,.15), rgba(34,197,94,.1));
+}
+
+.palpite-item {
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.palpite-numero {
+  font-family: monospace;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  background: rgba(0,0,0,0.3);
+  padding: 4px 12px;
+  border-radius: 40px;
+}
+
+.palpite-just {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+h3 {
+  margin: 20px 0 10px;
+  font-size: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+  margin-bottom: 18px;
+}
+
+th {
+  background: rgba(255,255,255,0.08);
+  color: white;
+  padding: 12px;
+  font-size: 13px;
+}
+
+tr {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+tr:last-child {
+  border-bottom: none;
+}
+
+td {
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.top {
+  background: rgba(34,197,94,0.18);
+}
+
+.low {
+  background: rgba(239,68,68,0.15);
+}
+
+summary {
+  background: rgba(255,255,255,0.08);
+  padding: 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+summary:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.hidden {
+  display: none;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 18px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* Botão flutuante */
+.btn-ajuda {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--purple);
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: 0.2s;
+}
+.btn-ajuda:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-content h2 {
+  margin-bottom: 15px;
+  color: var(--purple);
+}
+
+.modal-content h3 {
+  margin-top: 15px;
+  margin-bottom: 8px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.modal-content p, .modal-content li {
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.modal-content ul {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+
+.fechar {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--muted);
+  cursor: pointer;
+}
+.fechar:hover {
+  color: var(--red);
+}
+
+.obs {
+  margin-top: 15px;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: #fbbf24;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 14px;
+  }
+
+  .header h2 {
+    font-size: 24px;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+}
 </style>
 </head>
 <body>
+
+<!-- Botão fixo no canto superior direito -->
+<button id="btnAjuda" class="btn-ajuda" aria-label="Ajuda">?</button>
+
+<!-- Modal da explicação -->
+<div id="modalAjuda" class="modal hidden">
+  <div class="modal-content">
+    <span class="fechar" id="fecharAjuda">&times;</span>
+    <h2>Como funciona o site</h2>
+    
+    <h3>1. Cadastro de resultados</h3>
+    <p>Digite um número de 0000 a 9999 e clique em "Adicionar". Os dados ficam salvos no seu navegador.</p>
+
+    <h3>2. Estatísticas por posição</h3>
+    <p>Para cada posição (Milhar, Centena, Dezena, Unidade) mostra frequência, porcentagem e atraso de cada dígito.</p>
+
+    <h3>3. Palpites inteligentes</h3>
+    <p>O site gera dois tipos de sugestão:</p>
+    <ul>
+      <li><strong>🔥 Quentes:</strong> combina os dígitos que mais saíram em cada posição.</li>
+      <li><strong>❄️ Frios:</strong> combina os dígitos mais atrasados (que estão "devendo") em cada posição.</li>
+    </ul>
+    <p>Quanto mais dados, melhores as sugestões.</p>
+
+    <h3>4. Análise dos bichos</h3>
+    <p>Frequência de cada grupo (bicho) baseado na dezena final.</p>
+
+    <h3>5. Milhar repetida</h3>
+    <p>Lista milhares que saíram mais de uma vez.</p>
+
+    <h3>6. Importar/Exportar</h3>
+    <p>Importe lista, exporte TXT, desfaça último, zere tudo.</p>
+
+    <p class="obs">Obs: Tudo fica salvo localmente. Limpar o cache apaga os dados.</p>
+  </div>
+</div>
+
 <div class="container">
-  <h1>🎲 Extrator Bicho BR v2.2</h1>
-  <p>Com blacklist de números fantasmas</p>
 
-  <label>Estado</label>
-  <select id="estado">
-    <option value="pe">Pernambuco - PE</option>
-    <option value="rj">Rio de Janeiro - RJ</option>
-    <option value="sp">São Paulo - SP</option>
-    <option value="mg">Minas Gerais - MG</option>
-    <option value="ba">Bahia - BA</option>
-    <option value="ce">Ceará - CE</option>
-  </select>
+<div class="header">
+  <h2>🎲 Estatística Jogo do Bicho</h2>
+  <p>Análise + Palpites Quentes & Frios • Desenvolvido Por Wanderson Targino</p>
+  <div class="badge">v4.3 - Palpites Duplos</div>
+  <button onclick="window.open('https://wandersontargino185.github.io/Extra-o-do-bicho/', '_blank', 'noopener,noreferrer')" style="padding:10px 16px; background:#dc2626; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; margin-top:8px;">
+  Extrair várias Milhar
+</button>
+</div>
 
-  <div class="row">
-    <div>
-      <label>Data Início</label>
-      <input type="date" id="dataInicio">
-    </div>
-    <div>
-      <label>Data Fim</label>
-      <input type="date" id="dataFim">
-    </div>
-  </div>
+<div class="card">
+<details style="margin-top:16px;">
+  <summary>🔍 Pesquisar Milhar</summary>
+  <input type="number" id="buscaMilhar" placeholder="Digite a milhar 0000-9999" min="0" max="9999" inputmode="numeric">
+  <button onclick="pesquisarMilhar()" class="btn-blue">Buscar</button>
+  <div id="resultadoBusca"></div>
+</details>
 
-  <button class="btn-primary" id="btnStart" onclick="iniciar()">🚀 Iniciar Extração</button>
-  <button class="btn-stop hidden" id="btnStop" onclick="parar()">⏹️ Parar</button>
-  <button class="btn-success hidden" id="btnDownload" onclick="baixarTXT()">📥 Baixar TXT</button>
+<input type="number" id="numero" placeholder="Resultado ex: 1234" min="0" max="9999" inputmode="numeric" />
 
-  <div class="stats hidden" id="stats">
-    <div class="stat-box">
-      <span>Total</span>
-      <b id="totalNum">0</b>
-    </div>
-    <div class="stat-box">
-      <span>Dias OK</span>
-      <b id="diasOk">0</b>
-    </div>
-  </div>
+<button onclick="add()" class="btn-green">
+  ➕ Adicionar Resultado
+</button>
 
-  <div class="log" id="log">Aguardando início...</div>
+<button onclick="desfazer()" id="btnDesfazer" class="btn-orange hidden">
+  ↩️ Desfazer Último
+</button>
+
+<div class="row">
+  <button onclick="salvarArquivo()" class="btn-purple">💾 Salvar</button>
+  <button onclick="document.getElementById('abrirArq').click()" class="btn-blue">📂 Abrir</button>
+</div>
+
+<input type="file" id="abrirArq" accept=".txt,.json" class="hidden" onchange="abrirArquivo(event)">
+
+<button onclick="limpar()" class="btn-red">🗑️ Zerar Tudo</button>
+
+<details style="margin-top:16px;">
+  <summary>📥 Importar vários resultados</summary>
+  <textarea id="txtImport" placeholder="Cole aqui:\n1234\n5678\n9012"></textarea>
+  <button onclick="importarTXT()" class="btn-blue">📥 Importar Lista</button>
+</details>
+
+<button onclick="exportar()" class="btn-gray">
+  📤 Exportar TXT
+</button>
+
+<div id="resumo"></div>
+
+<!-- SEÇÃO DE PALPITES QUENTES -->
+<div id="palpiteQuentes" class="palpite-box hidden">
+  <h3>🔥 Palpites Quentes (dígitos que mais saem)</h3>
+  <div id="listaPalpitesQuentes"></div>
+</div>
+
+<!-- SEÇÃO DE PALPITES FRIOS -->
+<div id="palpiteFrios" class="palpite-box frios hidden">
+  <h3>❄️ Palpites Frios (dígitos atrasados / que "devem")</h3>
+  <div id="listaPalpitesFrios"></div>
+</div>
+
+<button id="btnGerarPalpites" class="btn-pink hidden">🔮 Atualizar Palpites</button>
+
+<div id="stats"></div>
+<div id="rodape"></div>
+
+</div>
+
+<div class="footer">
+  💡 Palpites quentes = frequentes | Frios = atrasados (podem estar próximos de sair)
+</div>
+
 </div>
 
 <script>
-// ============================================================
-// 🔥 BLACKLIST - números fantasmas que sempre aparecem no site
-// ============================================================
-const BLACKLIST = [
-  '1000', '1024', '1100', '1200', '1500', '1800',
-  '2200', '2500', '2800', '4000', '5000', '5390',
-  '5500', '7000', '2025', '2026'
-];
+// ====================== DADOS GLOBAIS ======================
+let dados = JSON.parse(localStorage.getItem('bicho3') || '[]');
 
-// Proxies para contornar CORS
-const PROXIES = [
-  'https://api.allorigins.win/raw?url=',
-  'https://corsproxy.io/?',
-  'https://api.codetabs.com/v1/proxy?quest='
-];
+const nomes = {
+  0:'Milhar',
+  1:'Centena',
+  2:'Dezena',
+  3:'Unidade'
+};
 
-let rodando = false;
-let resultados = [];
-let setResultados = new Set();
-let diasOk = 0;
+const bichos = {
+  '01':'Avestruz','02':'Avestruz','03':'Avestruz','04':'Avestruz',
+  '05':'Águia','06':'Águia','07':'Águia','08':'Águia',
+  '09':'Burro','10':'Burro','11':'Burro','12':'Burro',
+  '13':'Borboleta','14':'Borboleta','15':'Borboleta','16':'Borboleta',
+  '17':'Cachorro','18':'Cachorro','19':'Cachorro','20':'Cachorro',
+  '21':'Cabra','22':'Cabra','23':'Cabra','24':'Cabra',
+  '25':'Carneiro','26':'Carneiro','27':'Carneiro','28':'Carneiro',
+  '29':'Camelo','30':'Camelo','31':'Camelo','32':'Camelo',
+  '33':'Cobra','34':'Cobra','35':'Cobra','36':'Cobra',
+  '37':'Coelho','38':'Coelho','39':'Coelho','40':'Coelho',
+  '41':'Cavalo','42':'Cavalo','43':'Cavalo','44':'Cavalo',
+  '45':'Elefante','46':'Elefante','47':'Elefante','48':'Elefante',
+  '49':'Galo','50':'Galo','51':'Galo','52':'Galo',
+  '53':'Gato','54':'Gato','55':'Gato','56':'Gato',
+  '57':'Jacaré','58':'Jacaré','59':'Jacaré','60':'Jacaré',
+  '61':'Leão','62':'Leão','63':'Leão','64':'Leão',
+  '65':'Macaco','66':'Macaco','67':'Macaco','68':'Macaco',
+  '69':'Porco','70':'Porco','71':'Porco','72':'Porco',
+  '73':'Pavão','74':'Pavão','75':'Pavão','76':'Pavão',
+  '77':'Peru','78':'Peru','79':'Peru','80':'Peru',
+  '81':'Touro','82':'Touro','83':'Touro','84':'Touro',
+  '85':'Tigre','86':'Tigre','87':'Tigre','88':'Tigre',
+  '89':'Urso','90':'Urso','91':'Urso','92':'Urso',
+  '93':'Veado','94':'Veado','95':'Veado','96':'Veado',
+  '97':'Vaca','98':'Vaca','99':'Vaca','00':'Vaca'
+};
 
-document.getElementById('dataInicio').valueAsDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-document.getElementById('dataFim').valueAsDate = new Date();
-
-function log(msg) {
-  document.getElementById('log').textContent += msg + '\n';
-  document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
-}
-
-function updateStats() {
-  document.getElementById('totalNum').textContent = resultados.length;
-  document.getElementById('diasOk').textContent = diasOk;
-  document.getElementById('stats').classList.remove('hidden');
-}
-
-function gerarDatas(inicio, fim) {
-  const arr = [];
-  let dt = new Date(inicio + 'T00:00:00');
-  const dtFim = new Date(fim + 'T00:00:00');
-  while (dt <= dtFim) {
-    arr.push(dt.toISOString().slice(0,10));
-    dt.setDate(dt.getDate() + 1);
+// ====================== FUNÇÕES AUXILIARES ======================
+function getAtraso(pos, alg, dadosArray) {
+  for (let i = dadosArray.length - 1; i >= 0; i--) {
+    let num = dadosArray[i].toString().padStart(4, '0');
+    if (num[pos] == alg) return dadosArray.length - 1 - i;
   }
-  return arr;
+  return dadosArray.length;
 }
 
-async function fetchComFallback(url) {
-  for (let proxy of PROXIES) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      const res = await fetch(proxy + encodeURIComponent(url), {signal: controller.signal});
-      clearTimeout(timeout);
-      if (res.ok) return await res.text();
-    } catch(e) {}
-  }
-  throw new Error('Todos os proxies falharam');
-}
-
-function extrairMilhar(html) {
-  // Remove scripts e estilos para não capturar números de código
-  const htmlLimpo = html.replace(/<script[\s\S]*?<\/script>/gi, ' ')
-                        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-                        .replace(/<[^>]+>/g, ' '); // remove tags, mantém texto
-
-  // Regex para achar 4 dígitos isolados
-  const regex = /(?:^|\D)(\d{4})(?:\D|$)/g;
-  const matches = [];
-  let match;
-  while ((match = regex.exec(htmlLimpo)) !== null) {
-    const milhar = match[1];
-    // 🔥 PULA SE ESTIVER NA BLACKLIST
-    if (BLACKLIST.includes(milhar)) continue;
-    const n = parseInt(milhar);
-    if (n >= 0 && n <= 9999) matches.push(milhar);
-  }
-  return [...new Set(matches)];
-}
-
-async function iniciar() {
-  const estado = document.getElementById('estado').value;
-  const inicio = document.getElementById('dataInicio').value;
-  const fim = document.getElementById('dataFim').value;
-
-  if (!inicio || !fim) return alert('Preenche as duas datas');
-  if (new Date(inicio) > new Date(fim)) return alert('Data início maior que fim');
-
-  const datas = gerarDatas(inicio, fim);
-  if (datas.length > 90 && !confirm(`Vai puxar ${datas.length} dias. Continuar?`)) return;
-
-  rodando = true;
-  resultados = [];
-  setResultados.clear();
-  diasOk = 0;
-  document.getElementById('log').textContent = '';
-  document.getElementById('btnStart').classList.add('hidden');
-  document.getElementById('btnStop').classList.remove('hidden');
-  document.getElementById('btnDownload').classList.add('hidden');
-
-  log(`Iniciando ${datas.length} dias - ${estado.toUpperCase()}`);
-  log('================================\n');
-
-  for (let i = 0; i < datas.length && rodando; i++) {
-    const data = datas[i];
-    log(`[${i+1}/${datas.length}] ${data}... `);
-
-    try {
-      const url = `https://www.resultadofacil.com.br/resultado-do-jogo-do-bicho/${estado}/do-dia/${data}`;
-      const html = await fetchComFallback(url);
-
-      const milhares = extrairMilhar(html);
-      const novos = milhares.filter(m => !setResultados.has(m));
-
-      novos.forEach(m => {
-        resultados.push(m);
-        setResultados.add(m);
-      });
-
-      if (novos.length > 0) diasOk++;
-      log(`+${novos.length} resultados`);
-      updateStats();
-
-    } catch (err) {
-      log(`ERRO: ${err.message}`);
+function calcularEstatisticas(dadosArray) {
+  const contagem = [{},{},{},{}];
+  const contagemBicho = {};
+  const contagemMilhar = {};
+  
+  for (let n of dadosArray) {
+    let num = n.toString().padStart(4, '0');
+    for (let i = 0; i < 4; i++) {
+      contagem[i][num[i]] = (contagem[i][num[i]] || 0) + 1;
     }
-
-    await new Promise(r => setTimeout(r, 2000));
+    let dezena = num.slice(2);
+    contagemBicho[bichos[dezena]] = (contagemBicho[bichos[dezena]] || 0) + 1;
+    contagemMilhar[num] = (contagemMilhar[num] || 0) + 1;
   }
+  
+  const atrasos = [[],[],[],[]];
+  for (let pos = 0; pos < 4; pos++) {
+    for (let dig = 0; dig <= 9; dig++) {
+      atrasos[pos][dig] = getAtraso(pos, dig.toString(), dadosArray);
+    }
+  }
+  
+  return { contagem, contagemBicho, contagemMilhar, atrasos };
+}
 
-  rodando = false;
-  document.getElementById('btnStop').classList.add('hidden');
-  document.getElementById('btnStart').classList.remove('hidden');
+// ====================== GERAÇÃO DE PALPITES ======================
+function gerarPalpites() {
+  if (dados.length < 3) {
+    document.getElementById('listaPalpitesQuentes').innerHTML = '<p style="text-align:center; color:var(--muted)">⚠️ Adicione pelo menos 3 resultados para gerar palpites.</p>';
+    document.getElementById('listaPalpitesFrios').innerHTML = '';
+    document.getElementById('palpiteQuentes').classList.remove('hidden');
+    document.getElementById('palpiteFrios').classList.add('hidden');
+    document.getElementById('btnGerarPalpites').classList.add('hidden');
+    return;
+  }
+  
+  const { contagem, contagemBicho, atrasos } = calcularEstatisticas(dados);
+  const total = dados.length;
+  
+  // ---------- PALPITES QUENTES ----------
+  function topDigitosFrequentes(pos, quantos = 2) {
+    let arr = Object.entries(contagem[pos]).sort((a,b)=>b[1]-a[1]);
+    return arr.slice(0, quantos).map(e => e[0]);
+  }
+  
+  const topMilharQ = topDigitosFrequentes(0, 2);
+  const topCentenaQ = topDigitosFrequentes(1, 2);
+  const topDezenaQ = topDigitosFrequentes(2, 2);
+  const topUnidadeQ = topDigitosFrequentes(3, 2);
+  
+  let combinacoesQuentes = [];
+  for (let m of topMilharQ) {
+    for (let c of topCentenaQ) {
+      for (let d of topDezenaQ) {
+        for (let u of topUnidadeQ) {
+          combinacoesQuentes.push(`${m}${c}${d}${u}`);
+        }
+      }
+    }
+  }
+  combinacoesQuentes = [...new Set(combinacoesQuentes)].slice(0, 6);
+  
+  // ---------- PALPITES FRIOS ----------
+  function topDigitosAtrasados(pos, quantos = 2) {
+    let arr = [];
+    for (let dig = 0; dig <= 9; dig++) {
+      arr.push({ dig: dig.toString(), atraso: atrasos[pos][dig] });
+    }
+    arr.sort((a,b) => b.atraso - a.atraso);
+    return arr.slice(0, quantos).map(e => e.dig);
+  }
+  
+  const topMilharF = topDigitosAtrasados(0, 2);
+  const topCentenaF = topDigitosAtrasados(1, 2);
+  const topDezenaF = topDigitosAtrasados(2, 2);
+  const topUnidadeF = topDigitosAtrasados(3, 2);
+  
+  let combinacoesFrias = [];
+  for (let m of topMilharF) {
+    for (let c of topCentenaF) {
+      for (let d of topDezenaF) {
+        for (let u of topUnidadeF) {
+          combinacoesFrias.push(`${m}${c}${d}${u}`);
+        }
+      }
+    }
+  }
+  combinacoesFrias = [...new Set(combinacoesFrias)].slice(0, 6);
+  
+  // ---------- BICHO ATRASADO (extra para frios) ----------
+  let bichoAtrasado = null;
+  let maiorAtrasoBicho = -1;
+  for (let bicho in contagemBicho) {
+    let ultimoIndice = -1;
+    for (let i = dados.length-1; i >= 0; i--) {
+      let num = dados[i].toString().padStart(4,'0');
+      let dezena = num.slice(2);
+      if (bichos[dezena] === bicho) {
+        ultimoIndice = i;
+        break;
+      }
+    }
+    let atrasoBicho = (ultimoIndice === -1) ? dados.length : (dados.length - 1 - ultimoIndice);
+    if (atrasoBicho > maiorAtrasoBicho) {
+      maiorAtrasoBicho = atrasoBicho;
+      bichoAtrasado = bicho;
+    }
+  }
+  
+  let extraBicho = '';
+  if (bichoAtrasado && maiorAtrasoBicho >= 2) {
+    let dezenasDoBicho = [];
+    for (let dez in bichos) {
+      if (bichos[dez] === bichoAtrasado) dezenasDoBicho.push(dez);
+    }
+    if (dezenasDoBicho.length) {
+      let dezenaExtra = dezenasDoBicho[0];
+      let prefixo = (topMilharF[0] || '0') + (topCentenaF[0] || '0');
+      extraBicho = `${prefixo}${dezenaExtra}`;
+      if (!combinacoesFrias.includes(extraBicho)) {
+        combinacoesFrias.push(extraBicho);
+      }
+    }
+  }
+  
+  // ---------- RENDERIZA QUENTES ----------
+  let htmlQuentes = '';
+  for (let milhar of combinacoesQuentes) {
+    let bichoMilhar = bichos[milhar.slice(2)];
+    htmlQuentes += `
+      <div class="palpite-item">
+        <span class="palpite-numero">${milhar}</span>
+        <span>🐾 ${bichoMilhar}</span>
+        <span class="palpite-just">💡 dígitos frequentes</span>
+      </div>
+    `;
+  }
+  if (htmlQuentes === '') htmlQuentes = '<p style="text-align:center; color:var(--muted)">Sem dados suficientes.</p>';
+  document.getElementById('listaPalpitesQuentes').innerHTML = htmlQuentes;
+  document.getElementById('palpiteQuentes').classList.remove('hidden');
+  
+  // ---------- RENDERIZA FRIOS ----------
+  let htmlFrios = '';
+  for (let milhar of combinacoesFrias) {
+    let bichoMilhar = bichos[milhar.slice(2)];
+    let motivo = (milhar === extraBicho) ? 'bicho atrasado' : 'dígitos atrasados';
+    htmlFrios += `
+      <div class="palpite-item">
+        <span class="palpite-numero">${milhar}</span>
+        <span>🐾 ${bichoMilhar}</span>
+        <span class="palpite-just">❄️ ${motivo}</span>
+      </div>
+    `;
+  }
+  if (bichoAtrasado && maiorAtrasoBicho >= 2) {
+    htmlFrios += `<div style="font-size:12px; text-align:center; margin-top:8px;">🐾 Bicho mais atrasado: <b>${bichoAtrasado}</b> (${maiorAtrasoBicho} sorteios sem aparecer)</div>`;
+  }
+  if (htmlFrios === '') htmlFrios = '<p style="text-align:center; color:var(--muted)">Sem dados suficientes.</p>';
+  document.getElementById('listaPalpitesFrios').innerHTML = htmlFrios;
+  document.getElementById('palpiteFrios').classList.remove('hidden');
+  
+  document.getElementById('btnGerarPalpites').classList.remove('hidden');
+}
 
-  if (resultados.length > 0) {
-    document.getElementById('btnDownload').classList.remove('hidden');
-    log(`\n✅ Finalizado!`);
-    log(`Total: ${resultados.length} milhares únicos`);
-    log(`Dias com resultado: ${diasOk}/${datas.length}`);
+// ====================== PESQUISAR MILHAR ======================
+function pesquisarMilhar() {
+  const busca = document.getElementById('buscaMilhar').value.padStart(4, '0');
+  const divResultado = document.getElementById('resultadoBusca');
+  
+  if (!/^\d{4}$/.test(busca)) {
+    divResultado.innerHTML = '<p style="color:var(--red)">Digite um número entre 0000 e 9999.</p>';
+    return;
+  }
+  
+  const ocorrencias = [];
+  for (let i = 0; i < dados.length; i++) {
+    let num = dados[i].toString().padStart(4, '0');
+    if (num === busca) {
+      ocorrencias.push(i + 1);
+    }
+  }
+  
+  const bicho = bichos[busca.slice(2)];
+  if (ocorrencias.length === 0) {
+    divResultado.innerHTML = `<p>A milhar <b>${busca}</b> (${bicho}) nunca saiu.</p>`;
   } else {
-    log('\n❌ Nenhum resultado encontrado');
+    divResultado.innerHTML = `<p>A milhar <b>${busca}</b> (${bicho}) saiu ${ocorrencias.length} vez(es):<br>Posições: ${ocorrencias.join(', ')}</p>`;
   }
 }
 
-function parar() {
-  rodando = false;
-  log('\n⏹️ Parado pelo usuário');
+// ====================== RENDERIZAÇÃO PRINCIPAL ======================
+function atualizar() {
+  const btnDesfazer = document.getElementById('btnDesfazer');
+  if (btnDesfazer) btnDesfazer.classList.toggle('hidden', dados.length === 0);
+  
+  if (dados.length === 0) {
+    document.getElementById('resumo').innerHTML = `<div class="resumo"><b>📊 Total:</b> 0 resultados<br>Nenhum dado cadastrado.</div>`;
+    document.getElementById('stats').innerHTML = '';
+    document.getElementById('rodape').innerHTML = '';
+    document.getElementById('palpiteQuentes').classList.add('hidden');
+    document.getElementById('palpiteFrios').classList.add('hidden');
+    document.getElementById('btnGerarPalpites').classList.add('hidden');
+    localStorage.setItem('bicho3', JSON.stringify(dados));
+    return;
+  }
+  
+  const { contagem, contagemBicho, contagemMilhar, atrasos } = calcularEstatisticas(dados);
+  const total = dados.length;
+  
+  // ---- Resumo ----
+  let htmlResumo = `<div class="resumo"><b>📊 Total:</b> ${total} resultados</div>`;
+  document.getElementById('resumo').innerHTML = htmlResumo;
+  
+  // ---- Tabelas por posição ----
+  let htmlStats = '';
+  for (let pos = 0; pos < 4; pos++) {
+    htmlStats += `<h3>📍 ${nomes[pos]}</h3><table>`;
+    htmlStats += `<tr><th>Dígito</th><th>Freq.</th><th>%</th><th>Atraso</th></tr>`;
+    let sorted = Object.entries(contagem[pos]).sort((a,b) => b[1] - a[1]);
+    for (let [dig, freq] of sorted) {
+      let pct = ((freq / total) * 100).toFixed(1);
+      let atraso = atrasos[pos][parseInt(dig)];
+      let cls = (freq === Math.max(...Object.values(contagem[pos]))) ? 'top' : '';
+      htmlStats += `<tr class="${cls}"><td>${dig}</td><td>${freq}</td><td>${pct}%</td><td>${atraso}</td></tr>`;
+    }
+    htmlStats += '</table>';
+  }
+  document.getElementById('stats').innerHTML = htmlStats;
+  
+  // ---- Ranking de bichos ----
+  let bichoRank = Object.entries(contagemBicho).sort((a,b) => b[1] - a[1]);
+  let htmlBicho = '<h3>🐾 Frequência dos Bichos</h3><table><tr><th>Bicho</th><th>Vezes</th></tr>';
+  for (let [bicho, freq] of bichoRank) {
+    htmlBicho += `<tr><td>${bicho}</td><td>${freq}</td></tr>`;
+  }
+  htmlBicho += '</table>';
+  document.getElementById('stats').innerHTML += htmlBicho;
+  
+  // ---- Milhares repetidos ----
+  let repetidos = Object.entries(contagemMilhar).filter(([num, qtd]) => qtd > 1);
+  let htmlRep = '';
+  if (repetidos.length) {
+    htmlRep = '<h3>🔁 Milhares que repetiram</h3><table><tr><th>Milhar</th><th>Vezes</th></tr>';
+    for (let [num, qtd] of repetidos.sort((a,b) => b[1] - a[1])) {
+      htmlRep += `<tr><td>${num}</td><td>${qtd}</td></tr>`;
+    }
+    htmlRep += '</table>';
+  } else {
+    htmlRep = '<p style="color:var(--muted)">Nenhuma milhar repetida.</p>';
+  }
+  document.getElementById('stats').innerHTML += htmlRep;
+  
+  // ---- Últimos resultados ----
+  let ultimos = dados.slice(-5).reverse().map(n => n.toString().padStart(4,'0')).join(' → ');
+  document.getElementById('rodape').innerHTML = `
+    <h3>📋 Últimos resultados</h3>
+    <div style="background:rgba(255,255,255,0.05); padding:12px; border-radius:12px; text-align:center;">
+      ${ultimos}
+    </div>
+  `;
+  
+  // ---- Gerar palpites ----
+  gerarPalpites();
+  
+  localStorage.setItem('bicho3', JSON.stringify(dados));
 }
 
-function baixarTXT() {
-  const conteudo = resultados.join('\n');
-  const blob = new Blob([conteudo], {type:'text/plain;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
+// ====================== FUNÇÕES DE MANIPULAÇÃO ======================
+function add() {
+  const input = document.getElementById('numero');
+  let val = input.value.trim();
+  if (!/^\d{4}$/.test(val)) {
+    alert('Digite um número de 0000 a 9999.');
+    return;
+  }
+  const num = parseInt(val, 10);
+  if (isNaN(num) || num < 0 || num > 9999) {
+    alert('Número inválido.');
+    return;
+  }
+  dados.push(num);
+  localStorage.setItem('bicho3', JSON.stringify(dados));
+  input.value = '';
+  atualizar();
+}
+
+function desfazer() {
+  if (dados.length === 0) return;
+  dados.pop();
+  localStorage.setItem('bicho3', JSON.stringify(dados));
+  atualizar();
+}
+
+function limpar() {
+  if (!confirm('Tem certeza que deseja zerar todos os resultados?')) return;
+  dados = [];
+  localStorage.setItem('bicho3', JSON.stringify(dados));
+  atualizar();
+}
+
+function salvarArquivo() {
+  const blob = new Blob([JSON.stringify(dados, null, 2)], {type: 'application/json'});
   const a = document.createElement('a');
-
-  const estado = document.getElementById('estado').value;
-  const inicio = document.getElementById('dataInicio').value;
-  const fim = document.getElementById('dataFim').value;
-  a.download = `bicho_${estado}_${inicio}_ate_${fim}_${resultados.length}.txt`;
-
-  a.href = url;
+  a.href = URL.createObjectURL(blob);
+  a.download = 'resultados_bicho.json';
   a.click();
-  URL.revokeObjectURL(url);
 }
+
+function abrirArquivo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const conteudo = e.target.result;
+      let novos = JSON.parse(conteudo);
+      if (!Array.isArray(novos)) throw new Error('Não é um array.');
+      novos = novos.filter(n => Number.isInteger(n) && n >= 0 && n <= 9999);
+      dados = dados.concat(novos); // <-- concatena, não substitui
+      localStorage.setItem('bicho3', JSON.stringify(dados));
+      atualizar();
+      alert(`${novos.length} resultados importados.`);
+    } catch (err) {
+      alert('Erro ao ler o arquivo: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function importarTXT() {
+  const textarea = document.getElementById('txtImport');
+  const linhas = textarea.value.split('\n').map(s => s.trim()).filter(s => /^\d{4}$/.test(s));
+  if (linhas.length === 0) {
+    alert('Nenhum número válido encontrado (formato 0000-9999).');
+    return;
+  }
+  const nums = linhas.map(Number);
+  dados = dados.concat(nums);
+  localStorage.setItem('bicho3', JSON.stringify(dados));
+  textarea.value = '';
+  atualizar();
+  alert(`${nums.length} resultados importados.`);
+}
+
+function exportar() {
+  if (dados.length === 0) {
+    alert('Nenhum dado para exportar.');
+    return;
+  }
+  const texto = dados.map(n => n.toString().padStart(4, '0')).join('\n');
+  const blob = new Blob([texto], {type: 'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'resultados_bicho.txt';
+  a.click();
+}
+
+// ====================== INICIALIZAÇÃO ======================
+document.addEventListener('DOMContentLoaded', function() {
+  // Modal ajuda
+  const btnAjuda = document.getElementById('btnAjuda');
+  const modalAjuda = document.getElementById('modalAjuda');
+  const fecharAjuda = document.getElementById('fecharAjuda');
+  btnAjuda.addEventListener('click', () => modalAjuda.classList.remove('hidden'));
+  fecharAjuda.addEventListener('click', () => modalAjuda.classList.add('hidden'));
+  modalAjuda.addEventListener('click', (e) => {
+    if (e.target === modalAjuda) modalAjuda.classList.add('hidden');
+  });
+
+  // Atualizar dados iniciais
+  atualizar();
+});
+
+// Para garantir que o botão de palpites funcione
+document.getElementById('btnGerarPalpites')?.addEventListener('click', function() {
+  gerarPalpites();
+});
 </script>
 </body>
 </html>
