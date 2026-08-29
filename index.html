@@ -1,291 +1,165 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Extrator Bicho PE v3 - 1 ao 5</title>
-<style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:Inter,Arial,sans-serif; }
-  body { background:#0f172a; color:#f8fafc; padding:20px; display:flex; justify-content:center; }
-.container { width:100%; max-width:650px; background:rgba(255,255,255,0.08); backdrop-filter:blur(14px);
-    border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:24px; }
-  h1 { font-size:24px; margin-bottom:8px; text-align:center; }
-  p { color:#cbd5e1; font-size:14px; text-align:center; margin-bottom:20px; }
-  label { font-size:13px; color:#cbd5e1; display:block; margin:12px 0 6px; }
-  input[type="date"] { width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);
-    background:rgba(255,255,255,0.08); color:white; }
-.row { display:flex; gap:12px; }
-.row > div { flex:1; }
-  button { width:100%; padding:14px; border:none; border-radius:14px; font-weight:700; font-size:15px;
-    cursor:pointer; margin-top:12px; transition:all 0.2s; }
-  button:hover { transform:translateY(-2px); opacity:0.95; }
-  button:disabled { opacity:0.6; cursor:not-allowed; }
-.btn-primary { background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:white; }
-.btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:white; }
-.btn-stop { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; }
-.log { background:rgba(0,0,0,0.3); border-radius:12px; padding:12px; margin-top:16px; font-size:13px;
-    max-height:300px; overflow:auto; white-space:pre-wrap; font-family:monospace; }
-.stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
-.stat-box { background:rgba(255,255,255,0.06); padding:12px; border-radius:12px; text-align:center; }
-.stat-box b { font-size:20px; display:block; }
-.hidden { display:none; }
-  @media(max-width:600px){.row { flex-direction:column; }.stats { grid-template-columns:1fr; } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrator de Milhares - Jogo do Bicho (com download)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+            background-color: #f4f7fa;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 250px;
+            padding: 10px;
+            font-size: 14px;
+            border: 2px solid #b0c4de;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.download {
+            background-color: #27ae60;
+        }
+        button.download:hover {
+            background-color: #219150;
+        }
+        button.reset {
+            background-color: #e74c3c;
+        }
+        button.reset:hover {
+            background-color: #c0392b;
+        }
+        .result-area {
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid #bdc3c7;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .result-area h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .result-area pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .stats {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-  <h1>🎲 Olá, Extrator Bicho PE v3</h1>
-  <p>Só 1º ao 5º prêmio, sem duplicatas, Adeus </p>
 
-  <div class="row">
-    <div>
-      <label>Data Início</label>
-      <input type="date" id="dataInicio">
+    <h1>🔢 Extrator de Milhares - Jogo do Bicho</h1>
+    <p>Cole o texto completo do resultado (como você envia para o assistente) e clique em <strong>"Extrair e Baixar"</strong>.</p>
+    <p>O arquivo gerado terá o formato: <br> <code>2026</code> (ano) <br> <code>0001</code> (marcador) <br> e todas as milhares extraídas, uma por linha.</p>
+
+    <textarea id="inputText" placeholder="Cole aqui todo o resultado..."></textarea>
+
+    <div class="button-group">
+        <button onclick="extrairEBaixar()" class="download">Extrair e Baixar</button>
+        <button class="reset" onclick="limpar()">Limpar</button>
     </div>
-    <div>
-      <label>Data Fim</label>
-      <input type="date" id="dataFim">
+
+    <div class="result-area" id="resultArea" style="display:none;">
+        <h3>📋 Visualização do Arquivo</h3>
+        <div id="stats" class="stats"></div>
+        <pre id="resultContent"></pre>
     </div>
-  </div>
 
-  <button class="btn-primary" id="btnStart" onclick="iniciar()">🚀 Iniciar Extração</button>
-  <button class="btn-stop hidden" id="btnStop" onclick="parar()">⏹️ Parar</button>
-  <button class="btn-success hidden" id="btnDownload" onclick="baixarTXT()">📥 Baixar TXT</button>
+    <script>
+        function extrairMilhares(texto) {
+            // Busca números com exatamente 4 dígitos (borda de palavra)
+            const regex = /\b(\d{4})\b/g;
+            const matches = [...texto.matchAll(regex)].map(m => m[1]);
+            return matches;
+        }
 
-  <div class="stats hidden" id="stats">
-    <div class="stat-box">
-      <span>Total</span>
-      <b id="totalNum">0</b>
-    </div>
-    <div class="stat-box">
-      <span>Dias OK</span>
-      <b id="diasOk">0</b>
-    </div>
-  </div>
+        function gerarConteudoArquivo(milhares) {
+            // Formato: 2026, 0001, depois cada milhar em nova linha
+            return '2026\n0001\n' + milhares.join('\n');
+        }
 
-  <div class="log" id="log">Aguardando início...</div>
-</div>
+        function extrairEBaixar() {
+            const texto = document.getElementById('inputText').value;
+            if (!texto.trim()) {
+                alert('Por favor, cole algum texto primeiro.');
+                return;
+            }
 
-<script>
-const PROXIES = [
-  'https://api.allorigins.win/raw?url=',
-  'https://corsproxy.io/?',
-  'https://api.codetabs.com/v1/proxy?quest='
-];
+            const milhares = extrairMilhares(texto);
+            if (milhares.length === 0) {
+                alert('Nenhuma milhar encontrada no texto.');
+                return;
+            }
 
-let rodando = false;
-let resultados = [];
-let setResultados = new Set();
-let diasOk = 0;
+            // Gerar conteúdo do arquivo
+            const conteudo = gerarConteudoArquivo(milhares);
 
-document.getElementById('dataInicio').valueAsDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-document.getElementById('dataFim').valueAsDate = new Date();
+            // Mostrar visualização
+            const resultArea = document.getElementById('resultArea');
+            const stats = document.getElementById('stats');
+            const content = document.getElementById('resultContent');
+            stats.textContent = `✅ ${milhares.length} milhares extraídas.`;
+            content.textContent = conteudo;
+            resultArea.style.display = 'block';
 
-function log(msg) {
-  const logEl = document.getElementById('log');
-  logEl.textContent += msg + '\n';
-  logEl.scrollTop = logEl.scrollHeight;
-}
+            // Baixar o arquivo
+            const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            // Nome do arquivo com data atual (opcional)
+            const now = new Date();
+            const dataStr = now.toISOString().slice(0,10).replace(/-/g, '');
+            link.download = `bicho_pe_${dataStr}_extraido.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
 
-function updateStats() {
-  document.getElementById('totalNum').textContent = resultados.length;
-  document.getElementById('diasOk').textContent = diasOk;
-  document.getElementById('stats').classList.remove('hidden');
-}
+        function limpar() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('resultArea').style.display = 'none';
+        }
+    </script>
 
-function gerarDatas(inicio, fim) {
-  const arr = [];
-  let dt = new Date(inicio);
-  const dtFim = new Date(fim);
-  while (dt <= dtFim) {
-    arr.push(dt.toISOString().slice(0,10));
-    dt.setDate(dt.getDate() + 1);
-  }
-  return arr;
-}
-
-async function fetchComFallback(url) {
-  for (let proxy of PROXIES) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-    try {
-      const res = await fetch(proxy + encodeURIComponent(url), { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (res.ok) return await res.text();
-    } catch (e) {
-      clearTimeout(timeoutId);
-      // continua para o próximo proxy
-    }
-  }
-  throw new Error('Todos os proxies falharam');
-}
-
-/**
- * Extrai os números do 1º ao 5º prêmio do HTML.
- * Estratégia: busca por padrões como "1º" (ou "1º Prêmio") seguido de um número de 4 dígitos,
- * ignorando separadores comuns (espaço, ponto, hífen, dois pontos).
- * Fallback: se não achar, tenta a abordagem da tabela.
- */
-function extrairMilhar1a5(html) {
-  // Remove quebras de linha e espaços extras para facilitar a regex
-  const texto = html.replace(/\s+/g, ' ');
-
-  // Padrão: "1º" (ou "1º Prêmio") + separadores opcionais + 4 dígitos
-  // Vamos capturar para cada posição 1 a 5
-  const milhares = [];
-  const regex = /([1-5])º\s*(?:Pr[êe]mio\s*)?[:.\-]?\s*(\d{4})/gi;
-  let match;
-  const found = new Map();
-  while ((match = regex.exec(texto)) !== null) {
-    const pos = parseInt(match[1], 10);
-    const num = match[2];
-    // Só aceita se a posição for de 1 a 5 e ainda não tiver sido capturada
-    if (pos >= 1 && pos <= 5 && !found.has(pos)) {
-      found.set(pos, num);
-    }
-  }
-
-  // Ordena por posição e retorna os números
-  for (let i = 1; i <= 5; i++) {
-    if (found.has(i)) milhares.push(found.get(i));
-  }
-
-  // Se a regex não encontrou nada, tenta a abordagem da tabela (fallback)
-  if (milhares.length === 0) {
-    return extrairMilharPorTabela(html);
-  }
-
-  return milhares;
-}
-
-function extrairMilharPorTabela(html) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  const milhares = [];
-
-  // Tenta várias classes possíveis para a tabela
-  let tabela = doc.querySelector('table.resultado, table.tabelaResultado, table[class*="result"]');
-  if (!tabela) {
-    // Pega a primeira tabela com mais de 3 linhas
-    const todas = doc.querySelectorAll('table');
-    for (let t of todas) {
-      if (t.querySelectorAll('tr').length > 3) {
-        tabela = t;
-        break;
-      }
-    }
-  }
-  if (!tabela) tabela = doc.querySelector('table');
-  if (!tabela) return [];
-
-  const linhas = tabela.querySelectorAll('tr');
-  let count = 0;
-  for (let linha of linhas) {
-    if (count >= 5) break;
-    const celulas = linha.querySelectorAll('td');
-    if (celulas.length >= 2) {
-      const texto = celulas[1].textContent.trim();
-      const match = texto.match(/\b(\d{4})\b/);
-      if (match) {
-        milhares.push(match[1]);
-        count++;
-      }
-    }
-  }
-  return milhares;
-}
-
-async function iniciar() {
-  const inicio = document.getElementById('dataInicio').value;
-  const fim = document.getElementById('dataFim').value;
-
-  if (!inicio || !fim) return alert('Preenche as duas datas');
-  if (new Date(inicio) > new Date(fim)) return alert('Data início maior que fim');
-
-  const datas = gerarDatas(inicio, fim);
-  if (datas.length > 90 && !confirm(`Vai puxar ${datas.length} dias. Continuar?`)) return;
-
-  rodando = true;
-  resultados = [];
-  setResultados.clear();
-  diasOk = 0;
-  document.getElementById('log').textContent = '';
-  document.getElementById('btnStart').classList.add('hidden');
-  document.getElementById('btnStop').classList.remove('hidden');
-  document.getElementById('btnDownload').classList.add('hidden');
-
-  log(`Iniciando ${datas.length} dias - PE - Só 1º ao 5º prêmio`);
-  log('================================\n');
-
-  for (let i = 0; i < datas.length && rodando; i++) {
-    const data = datas[i];
-    log(`[${i+1}/${datas.length}] ${data}... `);
-
-    try {
-      // Tenta primeiro com a URL padrão
-      let url = `https://www.resultadofacil.com.br/resultado-do-jogo-do-bicho/pe/do-dia/${data}`;
-      let html;
-      try {
-        html = await fetchComFallback(url);
-      } catch (e) {
-        // Fallback: tentar sem o "do-dia"
-        url = `https://www.resultadofacil.com.br/resultado-do-jogo-do-bicho/pe/${data}`;
-        html = await fetchComFallback(url);
-      }
-
-      const milhares = extrairMilhar1a5(html);
-      // Filtra apenas números de 4 dígitos e não duplicados
-      const novos = milhares.filter(m => m.length === 4 && !setResultados.has(m));
-
-      novos.forEach(m => {
-        resultados.push(m);
-        setResultados.add(m);
-      });
-
-      if (novos.length > 0) diasOk++;
-      log(`+${novos.length} resultados (${milhares.length} capturados)`);
-      updateStats();
-
-    } catch (err) {
-      log(`ERRO: ${err.message}`);
-    }
-
-    await new Promise(r => setTimeout(r, 2000));
-  }
-
-  rodando = false;
-  document.getElementById('btnStop').classList.add('hidden');
-  document.getElementById('btnStart').classList.remove('hidden');
-
-  if (resultados.length > 0) {
-    document.getElementById('btnDownload').classList.remove('hidden');
-    log(`\n✅ Finalizado!`);
-    log(`Total: ${resultados.length} milhares`);
-    log(`Dias com resultado: ${diasOk}/${datas.length}`);
-  } else {
-    log('\n❌ Nenhum resultado encontrado');
-  }
-}
-
-function parar() {
-  rodando = false;
-  log('\n⏹️ Parado pelo usuário');
-}
-
-function baixarTXT() {
-  const conteudo = resultados.join('\n');
-  const blob = new Blob([conteudo], {type:'text/plain'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-
-  const inicio = document.getElementById('dataInicio').value;
-  const fim = document.getElementById('dataFim').value;
-  a.download = `bicho_pe_1a5_${inicio}_ate_${fim}_${resultados.length}.txt`;
-
-  a.href = url;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-</script>
 </body>
 </html>
